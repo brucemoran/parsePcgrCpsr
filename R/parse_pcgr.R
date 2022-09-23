@@ -37,7 +37,7 @@ parse_jsons <- function(PCGR_JSON = NULL, CPSR_JSON = NULL){
 
   ##if both jsons, check they are from one sample
   if(pcgr && cpsr){
-    if(unlist(pcgr_snv$VCF_SAMPLE_ID)[1] != unlist(cpsr_snv$VCF_SAMPLE_ID)[1]){
+    if(unlist(olist$pcgr_snv$VCF_SAMPLE_ID)[1] != unlist(olist$cpsr_snv$VCF_SAMPLE_ID)[1]){
       print(paste("Sample IDs do not match",
                   c(unlist(pcgr_snv$VCF_SAMPLE_ID)[1],
                     unlist(cpsr_snv$VCF_SAMPLE_ID)[1])), sep = ": ")
@@ -83,8 +83,8 @@ find_parse_jsons <- function(PARSE_DIR, DELIM = "\\."){
       cpsr_json <- grep("cpsr", unlist(json_file_list[[f]])[1], value = TRUE)
       pcgr_json <- grep("pcgr", unlist(json_file_list[[f]])[1], value = TRUE)
     }
-    parse_jsons(PCGR_JSON = pcgr_json,
-                CPSR_JSON = cpsr_json)
+    parsePcgrCpsr::parse_jsons(PCGR_JSON = pcgr_json,
+                               CPSR_JSON = cpsr_json)
   })
   names(data_list) <- json_names
   return(data_list)
@@ -158,7 +158,3 @@ snv_reduce <- function(DATA_LIST, WHICH){
   snv_tb <- dplyr::bind_rows(s3, s1)
   return(snv_tb)
 }
-
-
-
-

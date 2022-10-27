@@ -110,23 +110,30 @@ compile_xlsx <- function(DATA_LIST, TITLE = "comp_PCGR_CPSR", OUTDIR = "./", DEL
   ##TMB, MSI
   msi_tmb <- do.call(rbind, lapply(seq_along(DATA_LIST), function(f){
     msi <- tmb <- "Not estimated"
-    if(length(DATA_LIST[[f]]$pcgr_msi)>0){
-      msi <- DATA_LIST[[f]]$pcgr_msi
-    }
-    if(length(DATA_LIST[[f]]$pcgr_tmb)>0){
-      tmb <- DATA_LIST[[f]]$pcgr_tmb
-    }
+    msi <- ifelse(length(DATA_LIST[[f]]$pcgr_msi$msi_stats$vb)>0,
+                  gsub("MSI status:\n", "", DATA_LIST[[f]]$pcgr_msi$msi_stats$vb),
+                  "Not estimated")
+    tmb <- ifelse(length(DATA_LIST[[f]]$pcgr_tmb)>0,
+                  DATA_LIST[[f]]$pcgr_tmb,
+                  "Not estimated")
     return(tibble::tibble(sampleID = names(DATA_LIST)[f],
                           TMB = tmb, MSI = msi))
+  }))
+
+  ##CNA
+  cna <- do.call(rbind, lapply(seq_along(DATA_LIST), function(f){
+    dplyr::distinct(DATA_LIST[[f]]$pcgr_cna[,c(1:9)])
   }))
 
   ##write to workbook
   wb <- openxlsx::createWorkbook(title = TITLE, creator = "parsePcgrCpsr")
   openxlsx::addWorksheet(wb, "Somatic_SNVs")
   openxlsx::addWorksheet(wb, "Germline_SNVs")
+  openxlsx::addWorksheet(wb, "Somatic_CNAs")
   openxlsx::addWorksheet(wb, "MSI_TMB")
   openxlsx::writeData(wb, "Somatic_SNVs", pcgr_snv, colNames = TRUE, borders = "none", borderStyle = "none", rowNames = FALSE)
   openxlsx::writeData(wb, "Germline_SNVs", cpsr_snv, colNames = TRUE, borders = "none", borderStyle = "none", rowNames = FALSE)
+  openxlsx::writeData(wb, "Somatic_CNAs", cna, colNames = TRUE, borders = "none", borderStyle = "none", rowNames = FALSE)
   openxlsx::writeData(wb, "MSI_TMB", msi_tmb, colNames = TRUE, borders = "none", borderStyle = "none", rowNames = FALSE)
   openxlsx::saveWorkbook(wb, file = paste0(OUTDIR, "/", TITLE, ".xlsx"), overwrite = TRUE)
 
